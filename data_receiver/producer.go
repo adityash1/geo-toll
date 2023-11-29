@@ -7,17 +7,16 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
-var kafkaTopic = "obudata"
-
 type DataProducer interface {
 	ProduceData(data *types.OBUData) error
 }
 
 type KafkaProducer struct {
 	producer *kafka.Producer
+	topic    string
 }
 
-func NewKafkaProducer() (*KafkaProducer, error) {
+func NewKafkaProducer(topic string) (*KafkaProducer, error) {
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost"})
 	if err != nil {
 		return nil, err
@@ -30,7 +29,7 @@ func NewKafkaProducer() (*KafkaProducer, error) {
 				if ev.TopicPartition.Error != nil {
 					fmt.Printf("Delivery failed: %v\n", ev.TopicPartition)
 				} else {
-					fmt.Printf("Delivered message to %v\n", ev.TopicPartition)
+					//fmt.Printf("Delivered message to %v\n", ev.TopicPartition)
 				}
 			}
 		}
@@ -38,6 +37,7 @@ func NewKafkaProducer() (*KafkaProducer, error) {
 
 	return &KafkaProducer{
 		producer: p,
+		topic:    topic,
 	}, nil
 }
 
@@ -47,11 +47,9 @@ func (p *KafkaProducer) ProduceData(data *types.OBUData) error {
 		return err
 	}
 
-	topic := kafkaTopic
-
 	return p.producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{
-			Topic:     &topic,
+			Topic:     &p.topic,
 			Partition: kafka.PartitionAny,
 		},
 		Value: b,

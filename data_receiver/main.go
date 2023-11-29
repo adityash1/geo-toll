@@ -25,13 +25,15 @@ type DataReceiver struct {
 
 func NewDataReceiver() (*DataReceiver, error) {
 	var (
-		p   DataProducer
-		err error
+		p          DataProducer
+		err        error
+		kafkaTopic = "obudata"
 	)
-	p, err = NewKafkaProducer()
+	p, err = NewKafkaProducer(kafkaTopic)
 	if err != nil {
 		return nil, err
 	}
+	p = NewLogMiddleware(p)
 	return &DataReceiver{
 		msgch: make(chan types.OBUData, 128),
 		prod:  p,
@@ -65,7 +67,6 @@ func (dr *DataReceiver) wsReceiveLoop() {
 			log.Println("read error: ", err)
 			continue
 		}
-		fmt.Printf("received OBU data from [%d] :: <lat %.2f, long %2f> \n", data.OBUID, data.Lat, data.Long)
 		if err := dr.produceData(&data); err != nil {
 			fmt.Println("kafka produce error:", err)
 		}
