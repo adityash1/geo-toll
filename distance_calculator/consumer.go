@@ -24,7 +24,10 @@ func NewKafkaConsumer(topic string, svc CalculatorServicer) (*KafkaConsumer, err
 		return nil, err
 	}
 
-	c.SubscribeTopics([]string{topic}, nil)
+	err = c.SubscribeTopics([]string{topic}, nil)
+	if err != nil {
+		return nil, err
+	}
 	return &KafkaConsumer{
 		consumer:    c,
 		calcService: svc,

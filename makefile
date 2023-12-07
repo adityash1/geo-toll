@@ -10,4 +10,10 @@ calculator:
 	@go build -o bin/calculator ./distance_calculator
 	@./bin/calculator
 
+up:
+	docker-compose up -d
+
+down:
+	docker-compose down
+
 .PHONY: obu
